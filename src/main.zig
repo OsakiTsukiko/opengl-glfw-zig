@@ -5,6 +5,8 @@ const zopengl = @import("zopengl");
 const vertex_shader_source = @embedFile("./vert.glsl");
 const fragment_shader_source = @embedFile("./frag.glsl");
 
+const t_vertices = @import("./teapot.zig").t_vertices;
+
 const vertices = &[_]f32{
     0.5, 0.5, 0.0, // top right
     0.5, -0.5, 0.0, // bottom right
@@ -81,13 +83,13 @@ pub fn main() !void {
     gl.bindVertexArray(vao);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices.len * @sizeOf(f32), vertices, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices.len * @bitSizeOf(c_uint), indices, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, t_vertices.len * @sizeOf(f32), t_vertices, gl.STATIC_DRAW);
 
     gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 3 * @sizeOf(f32), null);
     gl.enableVertexAttribArray(0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices.len * @bitSizeOf(c_uint), indices, gl.STATIC_DRAW);
 
     gl.bindVertexArray(0);
     gl.bindBuffer(gl.ARRAY_BUFFER, 0);
@@ -102,8 +104,8 @@ pub fn main() !void {
         gl.polygonMode(gl.FRONT_AND_BACK, gl.LINE);
         gl.useProgram(shader_program);
         gl.bindVertexArray(vao);
-        // gl.drawArrays(gl.TRIANGLES, 0, 3);
-        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, null);
+        gl.drawArrays(gl.TRIANGLES, 0, 3488 * 3);
+        // gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, null);
         gl.bindVertexArray(0);
         gl.polygonMode(gl.FRONT_AND_BACK, gl.FILL);
 
