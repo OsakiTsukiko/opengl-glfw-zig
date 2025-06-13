@@ -1,0 +1,22 @@
+.{
+    .name = .window,
+    .version = "0.0.0",
+    .fingerprint = 0x8be4f9dd797e8082, // Changing this has security and trust implications.
+    .minimum_zig_version = "0.14.0",
+    .dependencies = .{
+        .zglfw = .{
+            .url = "git+https://github.com/zig-gamedev/zglfw?ref=main#c337cb3d3f984468ea7a386335937a5d555fc024",
+            .hash = "zglfw-0.10.0-dev-zgVDNMacIQA-k7kNSfwUc9Lfzx-bb_wklVm25K-p8Tr7",
+        },
+        .zopengl = .{
+            .url = "git+https://github.com/zig-gamedev/zopengl?ref=main#d264cab3c4dd3734a79b102b912880a497427133",
+            .hash = "zopengl-0.6.0-dev-5-tnz5dlCADYpffQdOFMtwLbB-w7caLobHCoUg_uCdGU",
+        },
+    },
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
