@@ -26,7 +26,7 @@ pub fn main() !void {
     glfw.windowHint(.context_version_major, 3);
     glfw.windowHint(.context_version_minor, 3);
     glfw.windowHint(.opengl_profile, .opengl_core_profile);
-    const win = try glfw.Window.create(600, 400, "HE HE", null);
+    const win = try glfw.Window.create(500, 500, "HE HE", null);
     defer win.destroy();
 
     glfw.makeContextCurrent(win);
