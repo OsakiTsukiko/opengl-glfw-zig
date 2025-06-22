@@ -2,8 +2,10 @@ const std = @import("std");
 const glfw = @import("zglfw");
 const zopengl = @import("zopengl");
 
-const vertex_shader_source = @embedFile("./vert.glsl");
-const fragment_shader_source = @embedFile("./frag.glsl");
+const Shader = @import("shader.zig").Shader;
+
+// const vertex_shader_source = @embedFile("./vert.glsl");
+// const fragment_shader_source = @embedFile("./frag.glsl");
 
 const vertices = &[_]f32{
     0.5, 0.5, 0.0, 1.0, 0.0, 0.0, // top right
@@ -18,6 +20,9 @@ const indices = &[_]c_uint{
 };
 
 pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+
     try glfw.init();
     defer glfw.terminate();
 
@@ -33,41 +38,7 @@ pub fn main() !void {
     try zopengl.loadCoreProfile(glfw.getProcAddress, 3, 3);
     const gl = zopengl.bindings;
 
-    const vertex_shader: c_uint = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vertex_shader, 1, @ptrCast(&vertex_shader_source), 0);
-    gl.compileShader(vertex_shader);
-    var vs_comp_success: c_int = undefined;
-    var vs_comp_log: [512]u8 = undefined;
-    gl.getShaderiv(vertex_shader, gl.COMPILE_STATUS, &vs_comp_success);
-    if (vs_comp_success != 1) {
-        gl.getShaderInfoLog(vertex_shader, 512, null, &vs_comp_log);
-        std.debug.print("VERTEX SHADER COMPLATION ERROR: {s} ({d})\n", .{ vs_comp_log, vs_comp_log.len });
-    }
-
-    const fragment_shader: c_uint = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fragment_shader, 1, @ptrCast(&fragment_shader_source), 0);
-    gl.compileShader(fragment_shader);
-    var fs_comp_success: c_int = undefined;
-    var fs_comp_log: [512]u8 = undefined;
-    gl.getShaderiv(fragment_shader, gl.COMPILE_STATUS, &fs_comp_success);
-    if (fs_comp_success != 1) {
-        gl.getShaderInfoLog(fragment_shader, 512, null, &fs_comp_log);
-        std.debug.print("FRAGMENT SHADER COMPILATION ERROR: {s} ({d})\n", .{ fs_comp_log, fs_comp_log.len });
-    }
-
-    const shader_program: c_uint = gl.createProgram();
-    gl.attachShader(shader_program, vertex_shader);
-    gl.attachShader(shader_program, fragment_shader);
-    gl.linkProgram(shader_program);
-    var sp_link_success: c_int = undefined;
-    var sp_link_log: [512]u8 = undefined;
-    gl.getProgramiv(shader_program, gl.LINK_STATUS, &sp_link_success);
-    if (sp_link_success != 1) {
-        gl.getProgramInfoLog(shader_program, 512, null, &sp_link_log);
-        std.debug.print("SHADER PROGRAM LINKING ERROR: {s} ({d})\n", .{ sp_link_log, sp_link_log.len });
-    }
-    gl.deleteShader(vertex_shader);
-    gl.deleteShader(fragment_shader);
+    const shader = try Shader.new("./src/vert.glsl", "./src/frag.glsl", allocator);
 
     var vao: c_uint = undefined;
     gl.genVertexArrays(1, &vao);
@@ -97,7 +68,7 @@ pub fn main() !void {
     gl.bindBuffer(gl.ARRAY_BUFFER, 0);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0);
 
-    const colorUniformLocation = gl.getUniformLocation(shader_program, "testColor");
+    // const colorUniformLocation = gl.getUniformLocation(shader_program, "testColor");
 
     while (!win.shouldClose()) {
         processInput(win);
@@ -109,8 +80,10 @@ pub fn main() !void {
 
         const time_val = glfw.getTime();
         const green_val = std.math.sin(time_val) / 2.0 + 0.5;
-        gl.useProgram(shader_program);
-        gl.uniform3f(colorUniformLocation, 0.0, @floatCast(green_val), 0.0);
+        // gl.useProgram(shader_program);
+        // gl.uniform3f(colorUniformLocation, 0.0, @floatCast(green_val), 0.0);
+        shader.use();
+        shader.setFloat3("testColor", 0.0, @floatCast(green_val), 0.0);
         gl.bindVertexArray(vao);
         // gl.drawArrays(gl.TRIANGLES, 0, 3);
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, null);
