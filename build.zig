@@ -26,6 +26,12 @@ pub fn build(b: *std.Build) void {
     const zopengl = b.dependency("zopengl", .{});
     exe.root_module.addImport("zopengl", zopengl.module("root"));
 
+    const zigimg_dependency = b.dependency("zigimg", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    exe.root_module.addImport("zigimg", zigimg_dependency.module("zigimg"));
+
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);

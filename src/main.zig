@@ -2,16 +2,19 @@ const std = @import("std");
 const glfw = @import("zglfw");
 const zopengl = @import("zopengl");
 
+const zigimg = @import("zigimg");
+
 const Shader = @import("shader.zig").Shader;
 
 // const vertex_shader_source = @embedFile("./vert.glsl");
 // const fragment_shader_source = @embedFile("./frag.glsl");
 
 const vertices = &[_]f32{
-    0.5, 0.5, 0.0, 1.0, 0.0, 0.0, // top right
-    0.5, -0.5, 0.0, 0.0, 1.0, 0.0, // bottom right
-    -0.5, -0.5, 0.0, 0.0, 0.0, 1.0, // bottom left
-    -0.5, 0.5, 0.0, 1.0, 0.0, 1.0, // top left
+    // position // color // texture
+    0.5, 0.5, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, // top right
+    0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, // bottom right
+    -0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, // bottom left
+    -0.5, 0.5, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, // top left
 };
 
 const indices = &[_]c_uint{
@@ -58,17 +61,38 @@ pub fn main() !void {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices.len * @bitSizeOf(c_uint), indices, gl.STATIC_DRAW);
 
     // position attribute
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 6 * @sizeOf(f32), null);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 8 * @sizeOf(f32), null);
     gl.enableVertexAttribArray(0);
     // color attribute
-    gl.vertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, 6 * @sizeOf(f32), @ptrFromInt(3 * @sizeOf(f32)));
+    gl.vertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, 8 * @sizeOf(f32), @ptrFromInt(3 * @sizeOf(f32)));
     gl.enableVertexAttribArray(1);
+    // texture attribute
+    gl.vertexAttribPointer(2, 2, gl.FLOAT, gl.FALSE, 8 * @sizeOf(f32), @ptrFromInt(6 * @sizeOf(f32)));
+    gl.enableVertexAttribArray(2);
 
     gl.bindVertexArray(0);
     gl.bindBuffer(gl.ARRAY_BUFFER, 0);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0);
 
     // const colorUniformLocation = gl.getUniformLocation(shader_program, "testColor");
+
+    var img = try zigimg.Image.fromFilePath(allocator, "wall.jpg");
+    defer img.deinit();
+
+    const texture_width: c_int = @intCast(img.width);
+    const texture_height: c_int = @intCast(img.height);
+    const texture_data = img.rawBytes();
+
+    var texture: c_uint = undefined;
+    gl.genTextures(1, &texture);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, texture_width, texture_height, 0, gl.RGB, gl.UNSIGNED_BYTE, @ptrCast(texture_data));
+    gl.generateMipmap(gl.TEXTURE_2D);
 
     while (!win.shouldClose()) {
         processInput(win);
@@ -84,6 +108,7 @@ pub fn main() !void {
         // gl.uniform3f(colorUniformLocation, 0.0, @floatCast(green_val), 0.0);
         shader.use();
         shader.setFloat3("testColor", 0.0, @floatCast(green_val), 0.0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.bindVertexArray(vao);
         // gl.drawArrays(gl.TRIANGLES, 0, 3);
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, null);
