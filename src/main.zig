@@ -94,6 +94,24 @@ pub fn main() !void {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, texture_width, texture_height, 0, gl.RGB, gl.UNSIGNED_BYTE, @ptrCast(texture_data));
     gl.generateMipmap(gl.TEXTURE_2D);
 
+    var img2 = try zigimg.Image.fromFilePath(allocator, "awesomeface.png");
+    defer img2.deinit();
+
+    const t2_w: c_int = @intCast(img2.width);
+    const t2_h: c_int = @intCast(img2.height);
+    const t2_d = img2.rawBytes();
+
+    var t2: c_uint = undefined;
+    gl.genTextures(1, &t2);
+    gl.bindTexture(gl.TEXTURE_2D, t2);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, t2_w, t2_h, 0, gl.RGBA, gl.UNSIGNED_BYTE, @ptrCast(t2_d));
+    gl.generateMipmap(gl.TEXTURE_2D);
+
     while (!win.shouldClose()) {
         processInput(win);
 
@@ -108,7 +126,12 @@ pub fn main() !void {
         // gl.uniform3f(colorUniformLocation, 0.0, @floatCast(green_val), 0.0);
         shader.use();
         shader.setFloat3("testColor", 0.0, @floatCast(green_val), 0.0);
+        shader.setInt("texture1", 0);
+        shader.setInt("texture2", 1);
+        gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, t2);
         gl.bindVertexArray(vao);
         // gl.drawArrays(gl.TRIANGLES, 0, 3);
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, null);
