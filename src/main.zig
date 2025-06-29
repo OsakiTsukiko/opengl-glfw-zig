@@ -120,10 +120,10 @@ pub fn main() !void {
         0.0, 0.0, 1.0, 0.0,
         0.0, 0.0, 0.0, 1.0,
     });
-    const r = zm.rotationZ(1.570796);
-    const s = zm.scaling(0.5, 0.5, 0.5);
-    trans = zm.mul(trans, r);
-    trans = zm.mul(trans, s);
+    // const r = zm.rotationZ(1.570796);
+    // const s = zm.scaling(0.5, 0.5, 0.5);
+    // trans = zm.mul(trans, r);
+    // trans = zm.mul(trans, s);
 
     while (!win.shouldClose()) {
         processInput(win);
@@ -141,6 +141,10 @@ pub fn main() !void {
         shader.setFloat3("testColor", 0.0, @floatCast(green_val), 0.0);
         shader.setInt("texture1", 0);
         shader.setInt("texture2", 1);
+        // const rot = zm.rotationZ(@floatCast(glfw.getTime() / 1000.0));
+        const rot = zm.rotationZ(0.005);
+        trans = zm.mul(rot, trans);
+        // trans = zm.mul(trans, rot);
         const transLoc = gl.getUniformLocation(shader.id, "transform");
         gl.uniformMatrix4fv(transLoc, 1, gl.FALSE, &zm.matToArr(trans));
 
