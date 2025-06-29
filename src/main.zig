@@ -3,6 +3,7 @@ const glfw = @import("zglfw");
 const zopengl = @import("zopengl");
 
 const zigimg = @import("zigimg");
+const zm = @import("zmath");
 
 const Shader = @import("shader.zig").Shader;
 
@@ -96,6 +97,7 @@ pub fn main() !void {
 
     var img2 = try zigimg.Image.fromFilePath(allocator, "awesomeface.png");
     defer img2.deinit();
+    try img2.flipVertically();
 
     const t2_w: c_int = @intCast(img2.width);
     const t2_h: c_int = @intCast(img2.height);
@@ -111,6 +113,17 @@ pub fn main() !void {
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, t2_w, t2_h, 0, gl.RGBA, gl.UNSIGNED_BYTE, @ptrCast(t2_d));
     gl.generateMipmap(gl.TEXTURE_2D);
+
+    var trans = zm.matFromArr(.{
+        1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        0.0, 0.0, 0.0, 1.0,
+    });
+    const r = zm.rotationZ(1.570796);
+    const s = zm.scaling(0.5, 0.5, 0.5);
+    trans = zm.mul(trans, r);
+    trans = zm.mul(trans, s);
 
     while (!win.shouldClose()) {
         processInput(win);
@@ -128,6 +141,9 @@ pub fn main() !void {
         shader.setFloat3("testColor", 0.0, @floatCast(green_val), 0.0);
         shader.setInt("texture1", 0);
         shader.setInt("texture2", 1);
+        const transLoc = gl.getUniformLocation(shader.id, "transform");
+        gl.uniformMatrix4fv(transLoc, 1, gl.FALSE, &zm.matToArr(trans));
+
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.activeTexture(gl.TEXTURE1);

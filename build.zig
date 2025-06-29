@@ -19,6 +19,12 @@ pub fn build(b: *std.Build) void {
     const zglfw = b.dependency("zglfw", .{});
     exe.root_module.addImport("zglfw", zglfw.module("root"));
 
+    // const ziglm = b.dependency("ziglm", .{});
+    // exe.root_module.addImport("ziglm", ziglm.module("ziglm"));
+
+    const zmath = b.dependency("zmath", .{});
+    exe.root_module.addImport("zmath", zmath.module("root"));
+
     if (target.result.os.tag != .emscripten) {
         exe.linkLibrary(zglfw.artifact("glfw"));
     }
