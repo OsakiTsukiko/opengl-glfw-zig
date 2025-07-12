@@ -114,12 +114,15 @@ pub fn main() !void {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, t2_w, t2_h, 0, gl.RGBA, gl.UNSIGNED_BYTE, @ptrCast(t2_d));
     gl.generateMipmap(gl.TEXTURE_2D);
 
-    var trans = zm.matFromArr(.{
-        1.0, 0.0, 0.0, 0.0,
-        0.0, 1.0, 0.0, 0.0,
-        0.0, 0.0, 1.0, 0.0,
-        0.0, 0.0, 0.0, 1.0,
-    });
+    const camPos: zm.Vec = .{ 0.0, 0.0, 0.3, 0.0 };
+    const camTarget: zm.Vec = .{ 0.0, 0.0, 0.0, 0.0 };
+    const camDirection = zm.normalize3(camPos - camTarget);
+    const up: zm.Vec = .{ 0.0, 1.0, 0.0, 0.0 };
+    const camRight = zm.normalize3(zm.cross3(up, camDirection));
+    _ = camRight;
+
+    var trans = zm.identity();
+
     // const r = zm.rotationZ(1.570796);
     // const s = zm.scaling(0.5, 0.5, 0.5);
     // trans = zm.mul(trans, r);
